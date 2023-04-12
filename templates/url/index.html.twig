@@ -1,0 +1,33 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="custom-form">
+                    <div class="alert alert-info">
+                        <h4 class="alert-heading">Welcome to URL Checker</h4>
+                        <p>Use this form to upload a file containing a list of URLs, and we'll check them for you and provide you with a report.</p>
+                        <hr>
+                        <p class="mb-0">Please note that the file must be in plain text format and contain one URL per line.</p>
+                    </div>
+                    {% if message is not empty %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endif %}
+                    {{ form_start(form) }}
+                    <div class="form-group  mt-3">
+                        <label>{{ form_label(form.file_uploader) }}</label>
+                        {{ form_widget(form.file_uploader, {'attr': { 'class': 'form-control' }}) }}
+                        {{ form_errors(form.file_uploader) }}
+                    </div>
+
+                    <div class="form-group text-md-center  mt-4">
+                        {{ form_widget(form.submit, {'attr': { 'class': 'btn btn-primary btn-block' }}) }}
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
