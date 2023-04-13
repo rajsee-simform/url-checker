@@ -66,7 +66,7 @@ class URLService
 
             $queryParams = array();
 
-            //Sorting the params
+            //Sorting the param to make uniform comparison
             if ($query) {
                 parse_str($query, $queryParams);
                 ksort($queryParams);
