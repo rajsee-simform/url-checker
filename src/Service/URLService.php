@@ -18,7 +18,7 @@ class URLService
 
     const HASH_ALGORITHM = 'sha256';
 
-    public function checkUrlsExist($urls): bool
+    public function checkUrlsExist($urls): array
     {
         $isDuplicate = true;
         $flush = array_map(array($this, 'normalizeUrl'), $urls);
@@ -27,15 +27,26 @@ class URLService
 
         if($countOfDataToBeInserted > 0) {
 
-            //Comma separated values in a batch
-            $valuesToBeInserted = implode(",", array_filter($flush, 'strlen'));
+            //$valuesToBeInserted = implode(",", array_filter($flush, 'strlen'));
+            $valuesToBeInserted =array_filter($flush, 'strlen');
+            //Insert data
             $affectedRows = $this->entityManager->getRepository(Urls::class)->insert($valuesToBeInserted);
-            $isDuplicate = (($countOfDataToBeInserted - $affectedRows) > 0) ? true : false;
+            $duplicateRecords = $countOfDataToBeInserted - $affectedRows;
+            $isDuplicate = ($duplicateRecords > 0) ? true : false;
         }
 
-        return $isDuplicate;
+        return [
+            'isDuplicate' => $isDuplicate,
+            'insertedRecords' => $affectedRows,
+            'duplicateRecords' => $duplicateRecords
+        ];
     }
 
+    /**
+     * This function will calculate hash after normalizing URL
+     * @param string $url
+     * @return false|string
+     */
     private function normalizeUrl(string $url)
     {
         if(!empty($url)){
@@ -55,18 +66,24 @@ class URLService
 
             $queryParams = array();
 
+            //Sorting the params
             if ($query) {
                 parse_str($query, $queryParams);
                 ksort($queryParams);
                 $query = http_build_query($queryParams);
             }
 
+            //To identify whether the two URLs are identical, will convert all URLs like this
             $normalizedURL = $host . $path . ($query ? '?' . $query : '') . ($fragment ? '#' . $fragment : '');
 
+            //Calculate hash value for each normalized URL
             $hash = hash(self::HASH_ALGORITHM, $normalizedURL);
 
+            //If duplicates found in the file itself, then it will be ignored
             if( !isset($this->normalizedUrls[$hash] )){
+
                 $this->normalizedUrls[$hash] = $url;
+                //To batch insert the data, prepare it like ("hash", "value")
                 return "('$hash', '$url')";
             }
         }

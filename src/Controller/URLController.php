@@ -26,7 +26,7 @@ class URLController extends AbstractController
         $form = $this->createForm(URLType::class);
         $form->handleRequest($request);
 
-        $message = '';
+        $message = $errorMessage = '';
         if ($form->isSubmitted() && $form->isValid()) {
 
             // Get the uploaded file
@@ -35,16 +35,17 @@ class URLController extends AbstractController
             $urls = explode(PHP_EOL, $csvData);
 
             $result = $urlService->checkUrlsExist($urls);
-            if ($result) {
-                $message = "Some or all the URLs already exist.";
-            } else {
-                $message = "URLs have been inserted";
+            if ($result['isDuplicate']) {
+                $errorMessage = 'Some or all the URLs already exist. Record(s) Inserted : '.$result["insertedRecords"].' Duplicate Record(s) : '.$result["duplicateRecords"];
+            }else{
+                $message = $result["insertedRecords"] ." URL(s) have been inserted";
             }
         }
 
         return $this->render('url/index.html.twig', [
             'form' => $form->createView(),
             'message' => $message,
+            'errorMessage' => $errorMessage
         ]);
     }
 }
